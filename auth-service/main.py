@@ -86,7 +86,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         raise credentials_exception
     return user
 
-# Signup endpoint
+# Signup endpoint with JWT generation
 @app.post("/signup")
 async def signup(user: User):
     try:
@@ -102,7 +102,13 @@ async def signup(user: User):
 
         # Publish "user_registered" event to RabbitMQ
         publish_message("user_registered", user.username)
-        return {"message": "User registered"}
+
+        # Generate JWT token for the user
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
+        
+        logger.info(f"User {user.username} registered successfully, JWT generated")
+        return {"message": "User registered", "access_token": access_token, "token_type": "bearer"}
     except Exception as e:
         logger.error(f"Signup failed for user {user.username}: {e}")
         raise HTTPException(status_code=500, detail="Failed to register user")
