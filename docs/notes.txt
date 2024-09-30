@@ -1,0 +1,8 @@
+For local testing
+
+cd auth-service
+uvicorn main:app --reload --port 8000
+
+cd finance-service
+uvicorn main:app --reload --port 8001
+

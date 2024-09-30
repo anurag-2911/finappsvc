@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: finance-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: finance-service
+  template:
+    metadata:
+      labels:
+        app: finance-service
+    spec:
+      containers:
+      - name: finance-service
+        image: your-dockerhub-username/finance-service:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: MONGODB_URI
+          value: "mongodb+srv://root:anurag@2911X@mongocluster.9xaal.mongodb.net/"
+        - name: RABBITMQ_URI
+          value: "amqp://novell:novell@123@172.105.51.216:5672/"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: finance-service
+spec:
+  selector:
+    app: finance-service
+  ports:
+  - protocol: TCP
+    port: 8002
+    targetPort: 8000
+  type: ClusterIP
