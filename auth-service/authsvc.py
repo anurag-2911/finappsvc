@@ -88,8 +88,8 @@ async def login(user: User):
         logger.error(f"Login failed for user {user.username}: {e}")
         raise HTTPException(status_code=500, detail="Failed to login")
 
-# Protected route example
+
 @app.get("/dashboard")
-async def dashboard(current_user: User = Depends(get_current_user)):
-    logger.info(f"Dashboard accessed by user: {current_user['username']}")
-    return {"message": f"Welcome {current_user['username']}!"}
+async def dashboard(current_user: str = Depends(get_current_user)):  # Expecting a string (username)
+    logger.info(f"Dashboard accessed by user: {current_user}")
+    return {"message": f"Welcome {current_user}!"}

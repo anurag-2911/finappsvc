@@ -3,7 +3,14 @@ import pika
 import logging
 import sys
 from time import sleep
-from common.jwt_handler import get_current_user, jwt, JWTError
+import sys
+import os
+
+# Add the parent directory (finappsvc) to the Python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from common.jwt_handler import get_current_user, jwt, JWTError, JWT_SECRET_KEY, JWT_ALGORITHM
+
 
 # Set up logging configuration
 logging.basicConfig(
@@ -19,8 +26,6 @@ logger = logging.getLogger(__name__)
 # RabbitMQ connection parameters and queue name
 RABBITMQ_URL = 'amqp://novell:novell@123@172.105.51.216:5672/'
 QUEUE_NAME = 'application_submitted'
-JWT_SECRET_KEY = 'your_secret_key'
-JWT_ALGORITHM = 'HS256'
 
 def send_notification(message: str):
     """
@@ -64,6 +69,14 @@ def callback(ch, method, properties, body):
     """
     try:
         message = body.decode('utf-8')
+
+        # Check if properties.headers exist
+        if properties.headers is None:
+            logger.error("No headers found in the message")
+            ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)  # Reject and don't requeue
+            return
+
+        # Extract the JWT token from headers
         token = properties.headers.get('Authorization')
 
         if not token:

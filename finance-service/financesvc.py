@@ -8,14 +8,11 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from urllib.parse import quote_plus
 from bson import ObjectId
+from common.jwt_handler import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, get_current_user
 
 # Set up logging with more detailed settings
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-
-SECRET_KEY = "your_secret_key"  # Replace this with a strong key
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 3000
 
 app = FastAPI()
 
@@ -35,19 +32,6 @@ try:
 except Exception as e:
     logger.error(f"Failed to connect to MongoDB: {e}")
     raise HTTPException(status_code=500, detail="Failed to connect to MongoDB")
-
-
-# JWT Token Creation Helper
-def create_access_token(data: dict, expires_delta: timedelta = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
-
 
 # RabbitMQ setup with JWT token in headers
 def publish_message(queue, message, token):
@@ -78,28 +62,6 @@ def publish_message(queue, message, token):
 class FinanceApplication(BaseModel):
     user: str
     amount: float
-
-
-# JWT token verification
-async def get_current_user(token: str = Depends(oauth2_scheme)):
-    logger.info("Validating JWT token...")
-    credentials_exception = HTTPException(
-        status_code=401,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            logger.error("Token validation failed: No 'sub' field found in token")
-            raise credentials_exception
-        logger.info(f"Token validated successfully for user: {username}")
-    except JWTError as e:
-        logger.error(f"JWT validation error: {e}")
-        raise credentials_exception
-    
-    return username
 
 
 # Apply for financing

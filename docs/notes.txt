@@ -1,10 +1,10 @@
 For local testing
 
-cd auth-service
-uvicorn main:app --reload --port 8000
+C:\work\fulfin\finappsvc> 
+uvicorn auth-service.authsvc:app --reload --port 8000
 
-cd finance-service
-uvicorn main:app --reload --port 8001
+C:\work\fulfin\finappsvc> 
+uvicorn finance-service.financesvc:app --reload --port 8001
 
 cd notification-service
 
