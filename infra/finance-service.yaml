@@ -16,7 +16,7 @@ spec:
       - name: finance-service
         image: anurag2911/finance-service:latest
         ports:
-        - containerPort: 8000
+        - containerPort: 8000  # Uvicorn runs on this port
         env:
         - name: MONGODB_URI
           valueFrom:
@@ -39,5 +39,5 @@ spec:
   ports:
   - protocol: TCP
     port: 8002
-    targetPort: 8000
+    targetPort: 8000  # Make sure this matches containerPort
   type: ClusterIP
