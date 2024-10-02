@@ -16,7 +16,7 @@ spec:
       - name: finance-service
         image: anurag2911/finance-service:latest
         ports:
-        - containerPort: 8000  # Uvicorn runs on this port
+        - containerPort: 8000  
         env:
         - name: MONGODB_URI
           valueFrom:
@@ -28,6 +28,11 @@ spec:
             secretKeyRef:
               name: app-secrets
               key: RABBITMQ_URI
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: JWT_SECRET_KEY  
 ---
 apiVersion: v1
 kind: Service
@@ -39,5 +44,5 @@ spec:
   ports:
   - protocol: TCP
     port: 8002
-    targetPort: 8000  # Make sure this matches containerPort
+    targetPort: 8000  
   type: ClusterIP

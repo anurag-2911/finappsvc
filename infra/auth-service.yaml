@@ -16,7 +16,7 @@ spec:
       - name: auth-service
         image: anurag2911/auth-service:latest
         ports:
-        - containerPort: 8000  # Match this with Uvicorn port
+        - containerPort: 8000  
         env:
         - name: MONGODB_URI
           valueFrom:
@@ -28,6 +28,11 @@ spec:
             secretKeyRef:
               name: app-secrets
               key: RABBITMQ_URI
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: JWT_SECRET_KEY  
 ---
 apiVersion: v1
 kind: Service
@@ -39,5 +44,5 @@ spec:
   ports:
   - protocol: TCP
     port: 8001
-    targetPort: 8000  # Ensure this points to the correct container port
+    targetPort: 8000  
   type: ClusterIP
