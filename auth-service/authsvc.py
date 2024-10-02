@@ -5,7 +5,6 @@ from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient
 import pika
 import bcrypt
-from urllib.parse import quote_plus
 from datetime import timedelta
 from common.jwt_handler import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, get_current_user
 
@@ -13,18 +12,28 @@ from common.jwt_handler import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token,
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-
-
 app = FastAPI()
 
+# Read MongoDB URI and RabbitMQ URI from environment variables
 MONGODB_URI = os.getenv("MONGODB_URI")
 RABBITMQ_URI = os.getenv("RABBITMQ_URI")
 
+# Ensure that MONGODB_URI is present
+if not MONGODB_URI:
+    raise ValueError("MONGODB_URI not set in environment variables or is empty!")
+
+# Log the MongoDB URI
 logger.info(f"Connecting to MongoDB at {MONGODB_URI}")
 
-client = AsyncIOMotorClient(MONGODB_URI)
-db = client['root']
-users_collection = db['users']
+# Initialize MongoDB connection
+try:
+    client = AsyncIOMotorClient(MONGODB_URI)
+    db = client['root']
+    users_collection = db['users']
+    logger.info("Connected to MongoDB successfully.")
+except Exception as e:
+    logger.error(f"Failed to connect to MongoDB: {e}")
+    raise e
 
 # RabbitMQ setup
 def publish_message(queue, message):

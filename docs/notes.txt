@@ -6,7 +6,5 @@ uvicorn auth-service.authsvc:app --reload --port 8000
 C:\work\fulfin\finappsvc> 
 uvicorn finance-service.financesvc:app --reload --port 8001
 
-cd notification-service
-
-python notificationsvc.python
+python .\notification-service\notificationsvc.py
 
