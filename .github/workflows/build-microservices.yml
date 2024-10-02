@@ -32,6 +32,13 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      # Copy common folder into each service
+      - name: Copy common folder into each service
+        run: |
+          cp -r ./common ./auth-service/common
+          cp -r ./common ./finance-service/common
+          cp -r ./common ./notification-service/common
+
       - name: Build and push ${{ matrix.service }} Docker image
         run: |
           docker build -t anurag2911/${{ matrix.service }}:${{ github.sha }} -t anurag2911/${{ matrix.service }}:latest ./${{ matrix.service }}
