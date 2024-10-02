@@ -1,4 +1,5 @@
 import logging
+import os
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -16,20 +17,20 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-# MongoDB setup
-username = quote_plus("root")
-password = quote_plus("anurag@2911X")  
-mongo_uri = f"mongodb+srv://{username}:{password}@mongocluster.9xaal.mongodb.net/"
-logger.info(f"Connecting to MongoDB at {mongo_uri}")
-client = AsyncIOMotorClient(mongo_uri)
+MONGODB_URI = os.getenv("MONGODB_URI")
+RABBITMQ_URI = os.getenv("RABBITMQ_URI")
+
+logger.info(f"Connecting to MongoDB at {MONGODB_URI}")
+
+client = AsyncIOMotorClient(MONGODB_URI)
 db = client['root']
 users_collection = db['users']
 
 # RabbitMQ setup
 def publish_message(queue, message):
     try:
-        logger.info(f"Connecting to RabbitMQ at amqp://novell:novell@123@172.105.51.216:5672/")
-        connection = pika.BlockingConnection(pika.URLParameters('amqp://novell:novell@123@172.105.51.216:5672/'))
+        logger.info(f"Connecting to RabbitMQ at {RABBITMQ_URI}")
+        connection = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URI))
         channel = connection.channel()
         channel.queue_declare(queue=queue)
         channel.basic_publish(exchange='', routing_key=queue, body=message)

@@ -1,3 +1,4 @@
+import os
 import jwt
 from datetime import datetime, timedelta
 from fastapi import HTTPException, Depends
@@ -9,7 +10,8 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-JWT_SECRET_KEY = "your_secret_key"  # Replace this with a strong key
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY") 
+print(f"from common jwt handler {JWT_SECRET_KEY}")
 JWT_ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 3000
 

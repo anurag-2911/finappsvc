@@ -14,14 +14,20 @@ spec:
     spec:
       containers:
       - name: auth-service
-        image: your-dockerhub-username/auth-service:latest
+        image: anurag2911/auth-service:latest
         ports:
         - containerPort: 8000
         env:
         - name: MONGODB_URI
-          value: "mongodb+srv://root:anurag@2911X@mongocluster.9xaal.mongodb.net/"
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: MONGODB_URI
         - name: RABBITMQ_URI
-          value: "amqp://novell:novell@123@172.105.51.216:5672/"
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: RABBITMQ_URI
 ---
 apiVersion: v1
 kind: Service

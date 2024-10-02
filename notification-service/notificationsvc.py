@@ -11,6 +11,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from common.jwt_handler import get_current_user, jwt, JWTError, JWT_SECRET_KEY, JWT_ALGORITHM
 
+MONGODB_URI = os.getenv("MONGODB_URI")
+RABBITMQ_URI = os.getenv("RABBITMQ_URI")
 
 # Set up logging configuration
 logging.basicConfig(
@@ -24,7 +26,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # RabbitMQ connection parameters and queue name
-RABBITMQ_URL = 'amqp://novell:novell@123@172.105.51.216:5672/'
+
 QUEUE_NAME = 'application_submitted'
 
 def send_notification(message: str):
@@ -105,8 +107,8 @@ def start_consuming(queue):
     """
     while True:
         try:
-            logger.info(f"Attempting to connect to RabbitMQ at {RABBITMQ_URL}")
-            connection = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URL))
+            logger.info(f"Attempting to connect to RabbitMQ at {RABBITMQ_URI}")
+            connection = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URI))
             channel = connection.channel()
 
             # Ensure the queue exists before consuming

@@ -1,4 +1,5 @@
 import logging
+import os
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -18,14 +19,13 @@ app = FastAPI()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-# MongoDB setup
-username = quote_plus("root")
-password = quote_plus("anurag@2911X")  
-mongo_uri = f"mongodb+srv://{username}:{password}@mongocluster.9xaal.mongodb.net/"
-logger.info(f"Connecting to MongoDB at {mongo_uri}")
+MONGODB_URI = os.getenv("MONGODB_URI")
+RABBITMQ_URI = os.getenv("RABBITMQ_URI")
+logger.info(f"Connecting to MongoDB at {MONGODB_URI}")
+logger.info(f"connecting to rabbitMQ at {RABBITMQ_URI}")
 
 try:
-    client = AsyncIOMotorClient(mongo_uri)
+    client = AsyncIOMotorClient(MONGODB_URI)
     db = client['root']
     applications_collection = db['applications']
     logger.info(f"Successfully connected to MongoDB and initialized 'applications' collection.")
@@ -36,8 +36,8 @@ except Exception as e:
 # RabbitMQ setup with JWT token in headers
 def publish_message(queue, message, token):
     try:
-        logger.info(f"Attempting to connect to RabbitMQ at amqp://novell:novell@123@172.105.51.216:5672/")
-        connection = pika.BlockingConnection(pika.URLParameters('amqp://novell:novell@123@172.105.51.216:5672/'))
+        logger.info(f"Attempting to connect to RabbitMQ at {RABBITMQ_URI}")
+        connection = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URI))
         channel = connection.channel()
         channel.queue_declare(queue=queue)
         logger.info(f"Connected to RabbitMQ and declared queue: {queue}")
