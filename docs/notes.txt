@@ -6,3 +6,7 @@ uvicorn main:app --reload --port 8000
 cd finance-service
 uvicorn main:app --reload --port 8001
 
+cd notification-service
+
+python notificationsvc.python
+
