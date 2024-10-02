@@ -10,5 +10,5 @@ COPY . /app
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Run the application
-CMD ["python", "authsvc.py"]
+# Start FastAPI using Uvicorn
+CMD ["uvicorn", "authsvc:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

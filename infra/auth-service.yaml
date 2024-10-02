@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: auth-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: auth-service
@@ -16,7 +16,7 @@ spec:
       - name: auth-service
         image: anurag2911/auth-service:latest
         ports:
-        - containerPort: 8000
+        - containerPort: 8000  # Match this with Uvicorn port
         env:
         - name: MONGODB_URI
           valueFrom:
@@ -39,5 +39,5 @@ spec:
   ports:
   - protocol: TCP
     port: 8001
-    targetPort: 8000
+    targetPort: 8000  # Ensure this points to the correct container port
   type: ClusterIP
