@@ -15,3 +15,6 @@ kubectl port-forward svc/auth-service 8001:8001
 kubectl port-forward svc/finance-service 8002:8002
 kubectl port-forward svc/notification-service 8003:8003
 
+
+command to compile:
+python -m py_compile .\main.py  
