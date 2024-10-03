@@ -55,13 +55,16 @@ class User(BaseModel):
 # Signup endpoint with JWT generation
 @app.post("/signup")
 async def signup(user: User):
+    logger.info(f"Signup request received for user: {user.username}")
+    
+    # Check if the user already exists
+    user_exists = await users_collection.find_one({"username": user.username})
+    if user_exists:
+        logger.warning(f"User already exists: {user.username}")
+        raise HTTPException(status_code=400, detail="User already exists")
+    
     try:
-        logger.info(f"Signup request received for user: {user.username}")
-        user_exists = await users_collection.find_one({"username": user.username})
-        if user_exists:
-            logger.warning(f"User already exists: {user.username}")
-            raise HTTPException(status_code=400, detail="User already exists")
-        
+        # Hash the user's password and save the user to MongoDB
         hashed_password = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt())
         await users_collection.insert_one({"username": user.username, "password": hashed_password})
         logger.info(f"User {user.username} created successfully")
@@ -75,6 +78,7 @@ async def signup(user: User):
         
         logger.info(f"User {user.username} registered successfully, JWT generated")
         return {"message": "User registered", "access_token": access_token, "token_type": "bearer"}
+    
     except Exception as e:
         logger.error(f"Signup failed for user {user.username}: {e}")
         raise HTTPException(status_code=500, detail="Failed to register user")
