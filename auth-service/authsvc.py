@@ -1,38 +1,18 @@
 import logging
 import os
-from fastapi import FastAPI, HTTPException, Depends, Request
+from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient
 import pika
 import bcrypt
 from datetime import timedelta, datetime
 from common.jwt_handler import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, get_current_user
-from fastapi.middleware.cors import CORSMiddleware
 
 # Set up logging
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
-
-# CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # TODO: Adjust this with frontend's URL for the security
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Middleware to log requests
-@app.middleware("http")
-async def log_requests(request: Request, call_next):
-    logger.info(f"Request: {request.method} {request.url}")
-    body = await request.body()
-    logger.info(f"Request body: {body.decode('utf-8')}")
-    response = await call_next(request)
-    logger.info(f"Response status: {response.status_code}")
-    return response
 
 # Read MongoDB URI and RabbitMQ URI from environment variables
 MONGODB_URI = os.getenv("MONGODB_URI")
@@ -42,26 +22,29 @@ RABBITMQ_URI = os.getenv("RABBITMQ_URI")
 if not MONGODB_URI:
     raise ValueError("MONGODB_URI not set in environment variables or is empty!")
 
+# Log the MongoDB URI
+logger.info(f"Connecting to MongoDB at {MONGODB_URI}")
+
 # Initialize MongoDB connection
 try:
-    client = AsyncIOMotorClient(MONGODB_URI, serverSelectionTimeoutMS=5000, connectTimeoutMS=5000)  # 5 seconds timeout
+    client = AsyncIOMotorClient(MONGODB_URI)
     db = client['root']
     users_collection = db['users']
     logger.info("Connected to MongoDB successfully.")
 except Exception as e:
     logger.error(f"Failed to connect to MongoDB: {e}")
-    raise HTTPException(status_code=500, detail="Database connection error")
-
+    raise e
 
 # RabbitMQ setup
 def publish_message(queue, message, token=None):
     try:
         logger.info(f"Connecting to RabbitMQ at {RABBITMQ_URI}")
-        connection = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URI, socket_timeout=5))  # 5 seconds timeout
+        connection = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URI))
         channel = connection.channel()
         channel.queue_declare(queue=queue)
         logger.info(f"Queue '{queue}' declared. Publishing message...")
 
+        # Include JWT token in message headers if token is provided
         properties = pika.BasicProperties(headers={'Authorization': token}) if token else None
         channel.basic_publish(exchange='', routing_key=queue, body=message, properties=properties)
 
@@ -70,8 +53,6 @@ def publish_message(queue, message, token=None):
         logger.info(f"Closed RabbitMQ connection after publishing.")
     except Exception as e:
         logger.error(f"Failed to publish message to RabbitMQ: {e}")
-        raise HTTPException(status_code=500, detail="Message queue error")
-
 
 # Publish analytics event for login
 def publish_analytics_event(queue, message, token=None):
@@ -98,7 +79,6 @@ def publish_analytics_event(queue, message, token=None):
     except Exception as e:
         logger.error(f"Failed to publish analytics event: {e}")
 
-# Pydantic model for user input
 class User(BaseModel):
     username: str
     password: str
@@ -117,9 +97,8 @@ async def signup(user: User):
     try:
         # Hash the user's password and save the user to MongoDB
         hashed_password = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt())
-        logger.info(f"Attempting to create user {user.username} in MongoDB.")
         await users_collection.insert_one({"username": user.username, "password": hashed_password})
-        logger.info(f"User {user.username} created successfully in MongoDB")
+        logger.info(f"User {user.username} created successfully")
 
         # Generate JWT token for the user using the shared function
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -134,6 +113,7 @@ async def signup(user: User):
     except Exception as e:
         logger.error(f"Signup failed for user {user.username}: {e}")
         raise HTTPException(status_code=500, detail="Failed to register user")
+
 
 # Login endpoint with JWT generation
 @app.post("/login")
@@ -169,4 +149,3 @@ async def login(user: User):
     except Exception as e:
         logger.error(f"Login failed for user {user.username}: {e}")
         raise HTTPException(status_code=500, detail="Failed to login")
-
