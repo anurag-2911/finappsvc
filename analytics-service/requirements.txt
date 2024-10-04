@@ -3,3 +3,4 @@ uvicorn
 motor
 pymongo
 python-jose
+PyJWT
