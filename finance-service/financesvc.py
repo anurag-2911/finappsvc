@@ -164,7 +164,7 @@ async def dashboard_info(current_user: str = Depends(get_current_user)):
 
 # Financing Options (new endpoint)
 @app.get("/financing-options")
-async def financing_options():
+async def financing_options(current_user: str = Depends(get_current_user)):
     try:
         logger.info("Fetching all financing options")
         financing_options = await financing_options_collection.find().to_list(None)
@@ -172,13 +172,18 @@ async def financing_options():
 
         if not financing_options:
             return {"message": "No financing options available"}
+        
+        # Publish an analytics event for financing options check
+        analytics_message = f"User {current_user} checked financing options at {datetime.utcnow().isoformat()}"
+        publish_analytics_event("user_activity", analytics_message)
 
         logger.info("Financing options fetched successfully.")
         return financing_options
     except Exception as e:
         logger.error(f"Failed to fetch financing options: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch financing options")
-
+    
+    
 # Admin-only: View all applications (new endpoint)
 @app.get("/all-applications")
 async def all_applications(current_user: str = Depends(get_current_user)):
@@ -217,3 +222,17 @@ async def user_list(current_user: str = Depends(get_current_user)):
     except Exception as e:
         logger.error(f"Failed to fetch user list: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch user list")
+
+
+# Publish analytics event for financing options check
+def publish_analytics_event(queue, message):
+    try:
+        logger.info(f"Publishing analytics event to RabbitMQ at {RABBITMQ_URI}")
+        connection = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URI))
+        channel = connection.channel()
+        channel.queue_declare(queue=queue)
+        channel.basic_publish(exchange='', routing_key=queue, body=message)
+        logger.info(f"Analytics event published to queue {queue}: {message}")
+        connection.close()
+    except Exception as e:
+        logger.error(f"Failed to publish analytics event: {e}")

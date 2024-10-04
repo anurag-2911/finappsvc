@@ -5,11 +5,13 @@ import sys
 from time import sleep
 import sys
 import os
+from datetime import datetime
 
 # Add the parent directory (finappsvc) to the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from common.jwt_handler import get_current_user, jwt, JWTError, JWT_SECRET_KEY, JWT_ALGORITHM
+from motor.motor_asyncio import AsyncIOMotorClient
 
 MONGODB_URI = os.getenv("MONGODB_URI")
 RABBITMQ_URI = os.getenv("RABBITMQ_URI")
@@ -26,8 +28,38 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # RabbitMQ connection parameters and queue name
-
 QUEUE_NAME = 'application_submitted'
+
+# Connect to MongoDB
+try:
+    client = AsyncIOMotorClient(MONGODB_URI)
+    db = client['root']
+    analytics_collection = db['user_analytics']
+    logger.info("Successfully connected to MongoDB for analytics.")
+except Exception as e:
+    logger.error(f"Failed to connect to MongoDB: {e}")
+    raise HTTPException(status_code=500, detail="Failed to connect to MongoDB")
+
+
+def log_event(username: str, event: str):
+    """
+    Logs the user activity into MongoDB for analytics purposes.
+    :param username: The username of the user.
+    :param event: The event description.
+    """
+    try:
+        logger.info(f"Logging event: {event} for user: {username}")
+        analytics_data = {
+            "username": username,
+            "event": event,
+            "timestamp": datetime.utcnow()
+        }
+        # Insert the event into the analytics collection
+        analytics_collection.insert_one(analytics_data)
+        logger.info(f"Event logged successfully for user: {username}")
+    except Exception as e:
+        logger.error(f"Failed to log event for {username}: {e}")
+
 
 def send_notification(message: str):
     """
@@ -40,6 +72,7 @@ def send_notification(message: str):
         logger.info(f"Notification sent successfully for message: {message}")
     except Exception as e:
         logger.error(f"Failed to send notification: {e}")
+
 
 def authenticate_message(token):
     """
@@ -59,6 +92,7 @@ def authenticate_message(token):
     except JWTError as e:
         logger.error(f"JWT authentication failed: {e}")
         raise HTTPException(status_code=401, detail="Invalid token")
+
 
 def callback(ch, method, properties, body):
     """
@@ -92,6 +126,9 @@ def callback(ch, method, properties, body):
         logger.info(f"Message received from queue: {message}")
         send_notification(message)
 
+        # Log the user activity to MongoDB (track event)
+        log_event(username, f"Notification sent for {message}")
+
         # Acknowledge the message only if processing succeeds
         ch.basic_ack(delivery_tag=method.delivery_tag)
         logger.info(f"Message from {username} processed successfully.")
@@ -99,6 +136,7 @@ def callback(ch, method, properties, body):
     except Exception as e:
         logger.error(f"Failed to process message: {e}")
         ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)  # Reject and don't requeue
+
 
 def start_consuming(queue):
     """
@@ -130,6 +168,7 @@ def start_consuming(queue):
             logger.error(f"An error occurred: {e}")
             logger.info("Retrying in 5 seconds...")
             sleep(5)
+
 
 if __name__ == "__main__":
     logger.info("Starting notification service...")

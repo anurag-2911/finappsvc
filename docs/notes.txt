@@ -18,3 +18,5 @@ kubectl port-forward svc/notification-service 8003:8003
 
 command to compile:
 python -m py_compile .\main.py  
+
+pip install -r requirements.txt

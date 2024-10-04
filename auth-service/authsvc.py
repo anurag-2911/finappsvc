@@ -88,34 +88,46 @@ async def signup(user: User):
 async def login(user: User):
     try:
         logger.info(f"Login request received for user: {user.username}")
-        
-        # Retrieve the user from the database
         db_user = await users_collection.find_one({"username": user.username})
         
         if not db_user:
             logger.warning(f"User {user.username} not found")
             raise HTTPException(status_code=400, detail="Invalid credentials")
         
-        # Ensure that the stored password is in bytes
+        # Ensure stored password is bytes
         db_password = db_user['password']
         if isinstance(db_password, str):
-            db_password = db_password.encode('utf-8')  # Convert string to bytes
-        
-        # Check if the provided password matches the stored hashed password
+            db_password = db_password.encode('utf-8')
+
         if not bcrypt.checkpw(user.password.encode('utf-8'), db_password):
             logger.warning(f"Invalid login attempt for user: {user.username}")
             raise HTTPException(status_code=400, detail="Invalid credentials")
         
-        # Generate JWT token for the user using the shared function
+        # Generate JWT token
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
         
         logger.info(f"User {user.username} logged in successfully, JWT generated")
+        
+        # Publish an analytics event for the login
+        analytics_message = f"User {user.username} logged in at {datetime.utcnow().isoformat()}"
+        publish_analytics_event("user_activity", analytics_message)
+
         return {"access_token": access_token, "token_type": "bearer"}
-    
     except Exception as e:
         logger.error(f"Login failed for user {user.username}: {e}")
         raise HTTPException(status_code=500, detail="Failed to login")
 
 
-
+# Publish analytics event for login
+def publish_analytics_event(queue, message):
+    try:
+        logger.info(f"Publishing analytics event to RabbitMQ at {RABBITMQ_URI}")
+        connection = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URI))
+        channel = connection.channel()
+        channel.queue_declare(queue=queue)
+        channel.basic_publish(exchange='', routing_key=queue, body=message)
+        logger.info(f"Analytics event published to queue {queue}: {message}")
+        connection.close()
+    except Exception as e:
+        logger.error(f"Failed to publish analytics event: {e}")
