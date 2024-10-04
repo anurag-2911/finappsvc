@@ -11,4 +11,4 @@ COPY . /app
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Start FastAPI using Uvicorn
-CMD ["uvicorn", "analytocssvc:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "analyticssvc:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
