@@ -64,3 +64,11 @@ spec:
                 name: finance-service
                 port:
                   number: 8002
+          # Add root path to serve the React app
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: finapp-service
+                port:
+                  number: 80
