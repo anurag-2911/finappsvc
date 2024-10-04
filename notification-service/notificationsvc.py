@@ -26,8 +26,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# RabbitMQ connection parameters and queue name
-QUEUE_NAME = 'application_submitted'
+# RabbitMQ queues
+QUEUES = ['application_submitted', 'user_activity']
 
 # Connect to MongoDB
 try:
@@ -117,10 +117,10 @@ def callback(ch, method, properties, body):
         logger.error(f"Failed to process message: {e}")
         ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)  # Reject and don't requeue
 
-def start_consuming(queue):
+def start_consuming(queues):
     """
-    Establishes a connection to RabbitMQ and starts consuming messages from the specified queue.
-    :param queue: The name of the queue to consume messages from.
+    Establishes a connection to RabbitMQ and starts consuming messages from the specified queues.
+    :param queues: List of queue names to consume messages from.
     """
     while True:
         try:
@@ -128,13 +128,15 @@ def start_consuming(queue):
             connection = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URI))
             channel = connection.channel()
 
-            # Ensure the queue exists before consuming
-            channel.queue_declare(queue=queue)
-            logger.info(f"Queue '{queue}' declared and ready for consumption.")
+            # Ensure each queue exists before consuming
+            for queue in queues:
+                channel.queue_declare(queue=queue)
+                logger.info(f"Queue '{queue}' declared and ready for consumption.")
 
-            # Start consuming messages with JWT validation
-            channel.basic_consume(queue=queue, on_message_callback=callback)
-            logger.info(f"Started consuming messages from queue: {queue}")
+            # Start consuming messages with JWT validation for each queue
+            for queue in queues:
+                channel.basic_consume(queue=queue, on_message_callback=callback)
+                logger.info(f"Started consuming messages from queue: {queue}")
 
             channel.start_consuming()
 
@@ -151,7 +153,7 @@ def start_consuming(queue):
 if __name__ == "__main__":
     logger.info("Starting notification service...")
     try:
-        start_consuming(QUEUE_NAME)
+        start_consuming(QUEUES)  # Consume from both 'application_submitted' and 'user_activity' queues
     except KeyboardInterrupt:
         logger.info("Notification service interrupted and shutting down.")
     except Exception as e:
