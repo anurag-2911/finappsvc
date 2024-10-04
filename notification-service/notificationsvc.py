@@ -81,10 +81,6 @@ def callback(ch, method, properties, body):
     """
     Callback function for RabbitMQ to process incoming messages.
     Each message will contain a JWT token in the headers for authentication.
-    :param ch: Channel.
-    :param method: Method.
-    :param properties: Message properties (contains headers with JWT token).
-    :param body: Message content.
     """
     try:
         message = body.decode('utf-8')
@@ -97,7 +93,7 @@ def callback(ch, method, properties, body):
 
         # Extract the JWT token from headers
         token = properties.headers.get('Authorization')
-
+        logger.info(f"JWT Token being received : {token}")
         if not token:
             logger.error("JWT token missing in message headers")
             ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)  # Reject and don't requeue
@@ -116,6 +112,7 @@ def callback(ch, method, properties, body):
     except Exception as e:
         logger.error(f"Failed to process message: {e}")
         ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)  # Reject and don't requeue
+
 
 def start_consuming(queues):
     """

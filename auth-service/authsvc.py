@@ -57,14 +57,20 @@ def publish_message(queue, message, token=None):
 # Publish analytics event for login
 def publish_analytics_event(queue, message, token=None):
     try:
+        logger.info(f"JWT Token being published: {token}")
         logger.info(f"Publishing analytics event to RabbitMQ at {RABBITMQ_URI}")
         connection = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URI))
         channel = connection.channel()
         channel.queue_declare(queue=queue)
         logger.info(f"Queue '{queue}' declared for analytics. Publishing event...")
 
-        # If a token is provided, include it in the message headers
+        # Ensure token is always passed in message headers
         properties = pika.BasicProperties(headers={'Authorization': token}) if token else None
+        
+        if properties is None:
+            logger.error(f"JWT Token is missing! Message will not have headers.")
+
+        # Publish the message with the headers
         channel.basic_publish(exchange='', routing_key=queue, body=message, properties=properties)
 
         logger.info(f"Analytics event published to queue '{queue}': {message}")
