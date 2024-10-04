@@ -1,33 +1,28 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: notification-service
+  name: analytics-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: notification-service
+      app: analytics-service
   template:
     metadata:
       labels:
-        app: notification-service
+        app: analytics-service
     spec:
       containers:
-      - name: notification-service
-        image: anurag2911/notification-service:latest
+      - name: analytics-service
+        image: anurag2911/analytics-service:latest  
         ports:
-        - containerPort: 8000
+        - containerPort: 8000  # Analytics service port
         env:
         - name: MONGODB_URI
           valueFrom:
             secretKeyRef:
               name: app-secrets
-              key: MONGODB_URI
-        - name: RABBITMQ_URI
-          valueFrom:
-            secretKeyRef:
-              name: app-secrets
-              key: RABBITMQ_URI
+              key: MONGODB_URI  
         - name: JWT_SECRET_KEY
           valueFrom:
             secretKeyRef:
@@ -37,12 +32,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: notification-service
+  name: analytics-service
 spec:
   selector:
-    app: notification-service
+    app: analytics-service
   ports:
   - protocol: TCP
-    port: 8003
-    targetPort: 8000
+    port: 8004  # Expose the analytics service on port 8004
+    targetPort: 8000  # Map to the container's port
   type: ClusterIP
