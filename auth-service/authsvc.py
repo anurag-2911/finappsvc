@@ -1,18 +1,38 @@
 import logging
 import os
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Request
 from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient
 import pika
 import bcrypt
 from datetime import timedelta, datetime
 from common.jwt_handler import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, get_current_user
+from fastapi.middleware.cors import CORSMiddleware
 
 # Set up logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # TODO: Adjust this with frontend's URL for the security
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Middleware to log requests
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    logger.info(f"Request: {request.method} {request.url}")
+    body = await request.body()
+    logger.info(f"Request body: {body.decode('utf-8')}")
+    response = await call_next(request)
+    logger.info(f"Response status: {response.status_code}")
+    return response
 
 # Read MongoDB URI and RabbitMQ URI from environment variables
 MONGODB_URI = os.getenv("MONGODB_URI")
@@ -21,9 +41,6 @@ RABBITMQ_URI = os.getenv("RABBITMQ_URI")
 # Ensure that MONGODB_URI is present
 if not MONGODB_URI:
     raise ValueError("MONGODB_URI not set in environment variables or is empty!")
-
-# Log the MongoDB URI
-logger.info(f"Connecting to MongoDB at {MONGODB_URI}")
 
 # Initialize MongoDB connection
 try:
@@ -79,6 +96,7 @@ def publish_analytics_event(queue, message, token=None):
     except Exception as e:
         logger.error(f"Failed to publish analytics event: {e}")
 
+# Pydantic model for user input
 class User(BaseModel):
     username: str
     password: str
@@ -114,7 +132,6 @@ async def signup(user: User):
         logger.error(f"Signup failed for user {user.username}: {e}")
         raise HTTPException(status_code=500, detail="Failed to register user")
 
-
 # Login endpoint with JWT generation
 @app.post("/login")
 async def login(user: User):
@@ -149,3 +166,4 @@ async def login(user: User):
     except Exception as e:
         logger.error(f"Login failed for user {user.username}: {e}")
         raise HTTPException(status_code=500, detail="Failed to login")
+

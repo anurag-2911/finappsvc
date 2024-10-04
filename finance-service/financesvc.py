@@ -21,8 +21,8 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 # MongoDB and RabbitMQ URIs from environment
 MONGODB_URI = os.getenv("MONGODB_URI")
 RABBITMQ_URI = os.getenv("RABBITMQ_URI")
-logger.info(f"Connecting to MongoDB at {MONGODB_URI}")
-logger.info(f"Connecting to RabbitMQ at {RABBITMQ_URI}")
+# logger.info(f"Connecting to MongoDB at {MONGODB_URI}")
+# logger.info(f"Connecting to RabbitMQ at {RABBITMQ_URI}")
 
 try:
     client = AsyncIOMotorClient(MONGODB_URI)
