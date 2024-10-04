@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient
 import pika
 import bcrypt
-from datetime import timedelta
+from datetime import timedelta, datetime
 from common.jwt_handler import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, get_current_user
 
 # Set up logging
@@ -42,11 +42,28 @@ def publish_message(queue, message):
         connection = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URI))
         channel = connection.channel()
         channel.queue_declare(queue=queue)
+        logger.info(f"Queue '{queue}' declared. Publishing message...")
         channel.basic_publish(exchange='', routing_key=queue, body=message)
-        logger.info(f"Message published to queue {queue}: {message}")
+        logger.info(f"Message published to queue '{queue}': {message}")
         connection.close()
+        logger.info(f"Closed RabbitMQ connection after publishing.")
     except Exception as e:
         logger.error(f"Failed to publish message to RabbitMQ: {e}")
+
+# Publish analytics event for login
+def publish_analytics_event(queue, message):
+    try:
+        logger.info(f"Publishing analytics event to RabbitMQ at {RABBITMQ_URI}")
+        connection = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URI))
+        channel = connection.channel()
+        channel.queue_declare(queue=queue)
+        logger.info(f"Queue '{queue}' declared for analytics. Publishing event...")
+        channel.basic_publish(exchange='', routing_key=queue, body=message)
+        logger.info(f"Analytics event published to queue '{queue}': {message}")
+        connection.close()
+        logger.info(f"Closed RabbitMQ connection after publishing analytics event.")
+    except Exception as e:
+        logger.error(f"Failed to publish analytics event: {e}")
 
 class User(BaseModel):
     username: str
@@ -117,17 +134,3 @@ async def login(user: User):
     except Exception as e:
         logger.error(f"Login failed for user {user.username}: {e}")
         raise HTTPException(status_code=500, detail="Failed to login")
-
-
-# Publish analytics event for login
-def publish_analytics_event(queue, message):
-    try:
-        logger.info(f"Publishing analytics event to RabbitMQ at {RABBITMQ_URI}")
-        connection = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URI))
-        channel = connection.channel()
-        channel.queue_declare(queue=queue)
-        channel.basic_publish(exchange='', routing_key=queue, body=message)
-        logger.info(f"Analytics event published to queue {queue}: {message}")
-        connection.close()
-    except Exception as e:
-        logger.error(f"Failed to publish analytics event: {e}")

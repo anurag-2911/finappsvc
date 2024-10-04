@@ -3,14 +3,13 @@ import pika
 import logging
 import sys
 from time import sleep
-import sys
 import os
 from datetime import datetime
 
 # Add the parent directory (finappsvc) to the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from common.jwt_handler import get_current_user, jwt, JWTError, JWT_SECRET_KEY, JWT_ALGORITHM
+from common.jwt_handler import jwt, JWTError, JWT_SECRET_KEY, JWT_ALGORITHM
 from motor.motor_asyncio import AsyncIOMotorClient
 
 MONGODB_URI = os.getenv("MONGODB_URI")
@@ -40,7 +39,6 @@ except Exception as e:
     logger.error(f"Failed to connect to MongoDB: {e}")
     raise HTTPException(status_code=500, detail="Failed to connect to MongoDB")
 
-
 def log_event(username: str, event: str):
     """
     Logs the user activity into MongoDB for analytics purposes.
@@ -60,20 +58,6 @@ def log_event(username: str, event: str):
     except Exception as e:
         logger.error(f"Failed to log event for {username}: {e}")
 
-
-def send_notification(message: str):
-    """
-    Simulates sending a notification (e.g., email, SMS) based on the received message.
-    :param message: The message to be used for the notification.
-    """
-    try:
-        logger.info(f"Preparing to send notification for message: {message}")
-        # Simulate sending a notification (e.g., email, SMS, etc.)
-        logger.info(f"Notification sent successfully for message: {message}")
-    except Exception as e:
-        logger.error(f"Failed to send notification: {e}")
-
-
 def authenticate_message(token):
     """
     Authenticate the JWT token before processing the message.
@@ -92,7 +76,6 @@ def authenticate_message(token):
     except JWTError as e:
         logger.error(f"JWT authentication failed: {e}")
         raise HTTPException(status_code=401, detail="Invalid token")
-
 
 def callback(ch, method, properties, body):
     """
@@ -124,10 +107,7 @@ def callback(ch, method, properties, body):
         username = authenticate_message(token)
 
         logger.info(f"Message received from queue: {message}")
-        send_notification(message)
-
-        # Log the user activity to MongoDB (track event)
-        log_event(username, f"Notification sent for {message}")
+        log_event(username, f"Notification processed for {message}")
 
         # Acknowledge the message only if processing succeeds
         ch.basic_ack(delivery_tag=method.delivery_tag)
@@ -136,7 +116,6 @@ def callback(ch, method, properties, body):
     except Exception as e:
         logger.error(f"Failed to process message: {e}")
         ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)  # Reject and don't requeue
-
 
 def start_consuming(queue):
     """
@@ -168,7 +147,6 @@ def start_consuming(queue):
             logger.error(f"An error occurred: {e}")
             logger.info("Retrying in 5 seconds...")
             sleep(5)
-
 
 if __name__ == "__main__":
     logger.info("Starting notification service...")

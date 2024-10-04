@@ -14,6 +14,7 @@ For cluster testing
 kubectl port-forward svc/auth-service 8001:8001
 kubectl port-forward svc/finance-service 8002:8002
 kubectl port-forward svc/notification-service 8003:8003
+kubectl port-forward svc/analytics-service 8004:8004
 
 
 command to compile:
