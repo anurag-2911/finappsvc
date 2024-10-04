@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [auth-service, finance-service, notification-service]
+        service: [auth-service, finance-service, notification-service, analytics-service]  
 
     services:
       docker:
@@ -38,6 +38,7 @@ jobs:
           cp -r ./common ./auth-service/common
           cp -r ./common ./finance-service/common
           cp -r ./common ./notification-service/common
+          cp -r ./common ./analytics-service/common  # Added analytics-service
 
       - name: Build and push ${{ matrix.service }} Docker image
         run: |
