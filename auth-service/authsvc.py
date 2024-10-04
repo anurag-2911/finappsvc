@@ -102,7 +102,7 @@ class User(BaseModel):
     password: str
 
 # Signup endpoint with JWT generation
-@app.post("/signup")
+@app.post("/auth-service/signup")
 async def signup(user: User):
     logger.info(f"Signup request received for user: {user.username}")
     
@@ -133,7 +133,7 @@ async def signup(user: User):
         raise HTTPException(status_code=500, detail="Failed to register user")
 
 # Login endpoint with JWT generation
-@app.post("/login")
+@app.post("/auth-service/login")
 async def login(user: User):
     try:
         logger.info(f"Login request received for user: {user.username}")
