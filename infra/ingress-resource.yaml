@@ -1,0 +1,66 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: finapp-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: appsxyzabc.com
+      http:
+        paths:
+          - path: /login
+            pathType: Exact
+            backend:
+              service:
+                name: auth-service
+                port:
+                  number: 8001
+          - path: /signup
+            pathType: Exact
+            backend:
+              service:
+                name: auth-service
+                port:
+                  number: 8001
+          - path: /analytics
+            pathType: Exact
+            backend:
+              service:
+                name: analytics-service
+                port:
+                  number: 8004
+          - path: /apply
+            pathType: Exact
+            backend:
+              service:
+                name: finance-service
+                port:
+                  number: 8002
+          - path: /status
+            pathType: Prefix
+            backend:
+              service:
+                name: finance-service
+                port:
+                  number: 8002
+          - path: /update_status
+            pathType: Prefix
+            backend:
+              service:
+                name: finance-service
+                port:
+                  number: 8002
+          - path: /dashboard-info
+            pathType: Exact
+            backend:
+              service:
+                name: finance-service
+                port:
+                  number: 8002
+          - path: /financing-options
+            pathType: Exact
+            backend:
+              service:
+                name: finance-service
+                port:
+                  number: 8002
