@@ -41,6 +41,7 @@ async def get_analytics(current_user: str = Depends(get_current_user)):
         analytics_data = await analytics_collection.find().to_list(None)
 
         if not analytics_data:
+            logger.info(f"No analytics data available for admin user: {current_user}")
             return {"message": "No analytics data available"}
 
         # Summarize analytics data

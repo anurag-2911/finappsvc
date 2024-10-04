@@ -41,6 +41,22 @@ async def initialize_collections():
         else:
             logger.info("'financing_options' collection already exists.")
 
+        # Check and create 'user_analytics' collection
+        if 'user_analytics' not in collections:
+            await db.create_collection('user_analytics')
+            logger.info("Created 'user_analytics' collection.")
+            
+            # Optionally, add a sample analytics entry for testing
+            sample_analytics_data = {
+                "username": "admin",
+                "event": "logged in",
+                "timestamp": "2024-10-04T00:00:00Z"
+            }
+            await db['user_analytics'].insert_one(sample_analytics_data)
+            logger.info("Inserted sample data into 'user_analytics' collection.")
+        else:
+            logger.info("'user_analytics' collection already exists.")
+
         # Add sample data to 'users' if admin user doesn't exist
         logger.info("Checking for admin user...")
         admin_user = await db['users'].find_one({"username": "admin"})
