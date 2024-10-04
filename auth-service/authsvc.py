@@ -44,24 +44,24 @@ if not MONGODB_URI:
 
 # Initialize MongoDB connection
 try:
-    client = AsyncIOMotorClient(MONGODB_URI)
+    client = AsyncIOMotorClient(MONGODB_URI, serverSelectionTimeoutMS=5000, connectTimeoutMS=5000)  # 5 seconds timeout
     db = client['root']
     users_collection = db['users']
     logger.info("Connected to MongoDB successfully.")
 except Exception as e:
     logger.error(f"Failed to connect to MongoDB: {e}")
-    raise e
+    raise HTTPException(status_code=500, detail="Database connection error")
+
 
 # RabbitMQ setup
 def publish_message(queue, message, token=None):
     try:
         logger.info(f"Connecting to RabbitMQ at {RABBITMQ_URI}")
-        connection = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URI))
+        connection = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URI, socket_timeout=5))  # 5 seconds timeout
         channel = connection.channel()
         channel.queue_declare(queue=queue)
         logger.info(f"Queue '{queue}' declared. Publishing message...")
 
-        # Include JWT token in message headers if token is provided
         properties = pika.BasicProperties(headers={'Authorization': token}) if token else None
         channel.basic_publish(exchange='', routing_key=queue, body=message, properties=properties)
 
@@ -70,6 +70,8 @@ def publish_message(queue, message, token=None):
         logger.info(f"Closed RabbitMQ connection after publishing.")
     except Exception as e:
         logger.error(f"Failed to publish message to RabbitMQ: {e}")
+        raise HTTPException(status_code=500, detail="Message queue error")
+
 
 # Publish analytics event for login
 def publish_analytics_event(queue, message, token=None):
@@ -115,8 +117,9 @@ async def signup(user: User):
     try:
         # Hash the user's password and save the user to MongoDB
         hashed_password = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt())
+        logger.info(f"Attempting to create user {user.username} in MongoDB.")
         await users_collection.insert_one({"username": user.username, "password": hashed_password})
-        logger.info(f"User {user.username} created successfully")
+        logger.info(f"User {user.username} created successfully in MongoDB")
 
         # Generate JWT token for the user using the shared function
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
