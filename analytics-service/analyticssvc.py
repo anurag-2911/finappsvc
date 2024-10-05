@@ -1,9 +1,7 @@
 from fastapi import FastAPI, HTTPException, Depends
 import logging
-from datetime import datetime
-from motor.motor_asyncio import AsyncIOMotorClient
 from common.jwt_handler import get_current_user
-import os
+from common.mongodb_handler import get_mongodb_client
 
 app = FastAPI()
 
@@ -11,12 +9,10 @@ app = FastAPI()
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# MongoDB URI from environment variable
-MONGODB_URI = os.getenv("MONGODB_URI")
 
 # Connect to MongoDB
 try:
-    client = AsyncIOMotorClient(MONGODB_URI)
+    client = get_mongodb_client()
     db = client['root']
     analytics_collection = db['user_analytics']
     users_collection = db['users']
