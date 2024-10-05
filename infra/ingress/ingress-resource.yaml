@@ -71,6 +71,20 @@ spec:
                 name: finance-service
                 port:
                   number: 8002
+          - path: /admin/applications
+            pathType: Prefix
+            backend:
+              service:
+                name: finance-service
+                port:
+                  number: 8002
+          - path: /admin/update_status
+            pathType: Prefix
+            backend:
+              service:
+                name: finance-service
+                port:
+                  number: 8002
           # Add root path to serve the React app
           - path: /
             pathType: Prefix

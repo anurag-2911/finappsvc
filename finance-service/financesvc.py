@@ -1,5 +1,5 @@
 import logging
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Query
 from pydantic import BaseModel
 from fastapi.security import OAuth2PasswordBearer
 from datetime import datetime, timedelta
@@ -7,6 +7,7 @@ from bson import ObjectId
 from common.jwt_handler import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, get_current_user
 from common.rabbitmq_handler import publish_message  
 from common.mongodb_handler import get_mongodb_client
+from math import ceil
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -158,4 +159,82 @@ async def apply_finance(application: FinanceApplication, current_user: str = Dep
     
     except Exception as e:
         logger.error(f"Failed to submit finance application for {current_user}: {e}")
-        raise HTTPException(status_code=500, detail="Failed to submit finance application")
+        raise HTTPException(status_code=500, detail="Failed to submit finance application") 
+    
+
+
+# Models for pagination
+class PaginatedResponse(BaseModel):
+    data: list
+    total_pages: int
+    current_page: int
+    total_items: int
+
+# Endpoint to get applications for all users (Admin Panel) with pagination
+@app.get("/admin/applications", response_model=PaginatedResponse)
+async def get_all_applications(
+    page: int = Query(1, ge=1),
+    per_page: int = Query(10, ge=1, le=100),
+    current_user: str = Depends(get_current_user)
+):
+    """
+    Fetch all finance applications (Admin Panel).
+    Supports pagination.
+    """
+    try:
+        if current_user != 'admin':  # Check if the current user is an admin
+            raise HTTPException(status_code=403, detail="Admin privileges required")
+
+        total_items = await applications_collection.count_documents({})
+        total_pages = ceil(total_items / per_page)
+
+        applications = await applications_collection.find() \
+            .skip((page - 1) * per_page) \
+            .limit(per_page) \
+            .to_list(None)
+
+        serialized_applications = [serialize_document(app) for app in applications]
+
+        return {
+            "data": serialized_applications,
+            "total_pages": total_pages,
+            "current_page": page,
+            "total_items": total_items
+        }
+
+    except Exception as e:
+        logger.error(f"Failed to retrieve applications: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve applications")
+
+# Endpoint to update application status by admin
+@app.put("/admin/update_status/{application_id}/{status}")
+async def admin_update_application_status(
+    application_id: str,
+    status: str,
+    current_user: str = Depends(get_current_user)
+):
+    """
+    Allows admin to update the status of a finance application.
+    """
+    try:
+        if current_user != 'admin':  # Check if the current user is an admin
+            raise HTTPException(status_code=403, detail="Admin privileges required")
+
+        if status not in ["approved", "denied"]:
+            raise HTTPException(status_code=400, detail="Invalid status")
+
+        update_result = await applications_collection.update_one(
+            {"_id": ObjectId(application_id)},
+            {"$set": {"status": status}}
+        )
+
+        if update_result.matched_count == 0:
+            return {"message": "Application not found"}
+
+        return {"message": f"Status updated to {status}"}
+
+    except Exception as e:
+        logger.error(f"Failed to update status for application {application_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update status")
+    
+
