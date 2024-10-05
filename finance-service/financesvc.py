@@ -1,24 +1,18 @@
 import logging
-import os
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
-from motor.motor_asyncio import AsyncIOMotorClient
 from fastapi.security import OAuth2PasswordBearer
 from datetime import datetime, timedelta
 from bson import ObjectId
 from common.jwt_handler import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, get_current_user
 from common.rabbitmq_handler import publish_message  
-from common.mongodb_handler import get_db_client
+from common.mongodb_handler import get_mongodb_client
 
 # Initialize FastAPI app
 app = FastAPI()
 
 # OAuth2 scheme
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-# Configuration
-MONGODB_URI = os.getenv("MONGODB_URI")
-RABBITMQ_URI = os.getenv("RABBITMQ_URI")
 
 # Set up logging
 def setup_logging():
@@ -27,7 +21,7 @@ def setup_logging():
 
 logger = setup_logging()
 
-client = get_db_client(MONGODB_URI)
+client = get_mongodb_client()
 db = client['root']
 applications_collection = db['applications']
 financing_options_collection = db['financing_options']
@@ -55,7 +49,7 @@ async def apply_finance(application: FinanceApplication, current_user: str = Dep
         application_data['submitted_by'] = current_user
         await applications_collection.insert_one(application_data)
         token = create_access_token(data={"sub": current_user}, expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-        publish_message(RABBITMQ_URI, "application_submitted", f"Application by {current_user} for {application.amount}", token)
+        publish_message("application_submitted", f"Application by {current_user} for {application.amount}", token)
         return {"message": "Finance application submitted", "submitted_by": current_user}
     except Exception as e:
         logger.error(f"Failed to submit finance application for {current_user}: {e}")
@@ -108,7 +102,7 @@ async def financing_options(current_user: str = Depends(get_current_user)):
         financing_options = await financing_options_collection.find().to_list(None)
         if not financing_options:
             return {"message": "No financing options available"}
-        publish_message(RABBITMQ_URI, "user_activity", f"User {current_user} checked financing options at {datetime.utcnow().isoformat()}")
+        publish_message("user_activity", f"User {current_user} checked financing options at {datetime.utcnow().isoformat()}")
         return [serialize_document(option) for option in financing_options]
     except Exception as e:
         logger.error(f"Failed to fetch financing options for user: {current_user}: {e}")
@@ -132,7 +126,7 @@ async def select_financing_option(selection: FinancingOptionSelection, current_u
                 "selected_option": selected_option,
                 "selected_at": datetime.utcnow()
             })
-        publish_message(RABBITMQ_URI, "financing_option_selected", f"User {current_user} selected financing option {selected_option['option_name']}", create_access_token({"sub": current_user}))
+        publish_message("financing_option_selected", f"User {current_user} selected financing option {selected_option['option_name']}", create_access_token({"sub": current_user}))
         return {"message": f"Financing option {selected_option['option_name']} selected successfully", "selected_option": selected_option}
     except Exception as e:
         logger.error(f"Failed to save financing option selection for user {current_user}: {e}")

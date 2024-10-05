@@ -1,10 +1,11 @@
 import logging
+import os
 import pika
 from fastapi import HTTPException
 
 logger = logging.getLogger(__name__)
-
-def publish_message(rabbitmq_uri, queue, message, token=None):
+rabbitmq_uri = os.getenv("RABBITMQ_URI")
+def publish_message(queue, message, token=None):
     try:
         logger.info(f"Publishing message to RabbitMQ at {rabbitmq_uri} for queue: {queue}")
         connection = pika.BlockingConnection(pika.URLParameters(rabbitmq_uri))
@@ -18,7 +19,7 @@ def publish_message(rabbitmq_uri, queue, message, token=None):
         logger.error(f"Failed to publish message to RabbitMQ: {e}")
         raise HTTPException(status_code=500, detail="Failed to publish message to RabbitMQ")
     
-def connect_to_rabbitmq(rabbitmq_uri):
+def connect_to_rabbitmq():
     try:
         logger.info(f"Connecting to RabbitMQ at {rabbitmq_uri}")
         connection = pika.BlockingConnection(pika.URLParameters(rabbitmq_uri))
@@ -50,7 +51,7 @@ def close_rabbitmq_connection(connection):
         logger.error(f"Failed to close RabbitMQ connection: {e}")
         
         
-def publish_analytics_event(rabbitmq_uri, queue, message, token=None):
+def publish_analytics_event(queue, message, token=None):
     try:
         logger.info(f"Publishing analytics event to RabbitMQ at {rabbitmq_uri} for queue: {queue}")
         connection = pika.BlockingConnection(pika.URLParameters(rabbitmq_uri))
