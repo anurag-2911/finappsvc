@@ -29,8 +29,9 @@ users_collection = db['users']
 
 # Models
 class FinanceApplication(BaseModel):
-    user: str
+    loan_types: list[str]
     amount: float
+    purpose: str
 
 class FinancingOptionSelection(BaseModel):
     option_id: str
@@ -133,3 +134,27 @@ async def select_financing_option(selection: FinancingOptionSelection, current_u
     except Exception as e:
         logger.error(f"Failed to save financing option selection for user {current_user}: {e}")
         raise HTTPException(status_code=500, detail="Failed to save financing option selection")
+    
+    
+# Endpoint to apply for financing
+@app.post("/apply-finance")
+async def apply_finance(application: FinanceApplication, current_user: str = Depends(get_current_user)):
+    try:
+        # Prepare application data
+        application_data = application.dict()
+        application_data['status'] = 'pending'
+        application_data['submitted_by'] = current_user
+        application_data['submitted_at'] = datetime.utcnow()
+
+        # Insert application into MongoDB
+        result = await applications_collection.insert_one(application_data)
+        
+        # Create and publish JWT token for message
+        token = create_access_token(data={"sub": current_user}, expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+        publish_message("application_submitted", f"Application by {current_user} for {application.amount}", token)
+        
+        return {"message": "Finance application submitted", "application_id": str(result.inserted_id)}
+    
+    except Exception as e:
+        logger.error(f"Failed to submit finance application for {current_user}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to submit finance application")
