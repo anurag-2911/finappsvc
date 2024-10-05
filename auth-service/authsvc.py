@@ -84,7 +84,14 @@ async def login(user: User):
         analytics_message = f"User {user.username} logged in at {datetime.utcnow().isoformat()}"
         publish_analytics_event("user_activity", analytics_message, token=access_token)
 
-        return {"access_token": access_token, "token_type": "bearer"}
+        
+        user_role = db_user.get('role', 'user')  # Default to 'user' if role is not found
+
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "role": user_role
+        }
     except Exception as e:
         logger.error(f"Login failed for user {user.username}: {e}")
         raise HTTPException(status_code=500, detail="Failed to login")
