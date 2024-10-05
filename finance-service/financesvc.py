@@ -56,11 +56,12 @@ async def apply_finance(application: FinanceApplication, current_user: str = Dep
         logger.error(f"Failed to submit finance application for {current_user}: {e}")
         raise HTTPException(status_code=500, detail="Failed to submit finance application")
 
-@app.get("/status/{user}")
-async def check_status(user: str, current_user: str = Depends(get_current_user)):
+@app.get("/status")
+async def check_status(current_user: str = Depends(get_current_user)):
+    """
+    Fetches the finance applications of the current user.
+    """
     try:
-        if user != current_user:
-            raise HTTPException(status_code=403, detail="You are not authorized to view this data")
         applications = await applications_collection.find({"submitted_by": current_user}).to_list(None)
         if not applications:
             return {"message": "No finance applications found"}
