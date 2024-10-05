@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: root-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: appsxyzabc.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: finapp-service
+                port:
+                  number: 80
