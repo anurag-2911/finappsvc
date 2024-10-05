@@ -15,6 +15,13 @@ spec:
                 name: finance-service
                 port:
                   number: 8002
+          - path: /apply-finance  
+            pathType: Exact
+            backend:
+              service:
+                name: finance-service
+                port:
+                  number: 8002
           - path: /status
             pathType: Prefix
             backend:
