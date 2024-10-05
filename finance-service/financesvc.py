@@ -99,15 +99,17 @@ async def dashboard_info(current_user: str = Depends(get_current_user)):
 @app.get("/financing-options")
 async def financing_options(current_user: str = Depends(get_current_user)):
     try:
+        logger.info(f"User {current_user} is fetching financing options.")
         financing_options = await financing_options_collection.find().to_list(None)
         if not financing_options:
+            logger.info("No financing options found in the database.")
             return {"message": "No financing options available"}
+        logger.info(f"Found {len(financing_options)} financing options.")
         publish_message("user_activity", f"User {current_user} checked financing options at {datetime.utcnow().isoformat()}")
         return [serialize_document(option) for option in financing_options]
     except Exception as e:
         logger.error(f"Failed to fetch financing options for user: {current_user}: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch financing options")
-
 @app.post("/select-financing-option")
 async def select_financing_option(selection: FinancingOptionSelection, current_user: str = Depends(get_current_user)):
     try:
