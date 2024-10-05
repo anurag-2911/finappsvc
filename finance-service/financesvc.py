@@ -204,3 +204,50 @@ def publish_analytics_event(queue, message):
         logger.info(f"RabbitMQ connection closed after publishing analytics event")
     except Exception as e:
         logger.error(f"Failed to publish analytics event: {e}")
+
+
+from pydantic import BaseModel
+
+# Pydantic model for the financing option selection
+class FinancingOptionSelection(BaseModel):
+    option_id: str  # The ID of the selected financing option
+
+# Endpoint to save user's selected financing option
+@app.post("/select-financing-option")
+async def select_financing_option(selection: FinancingOptionSelection, current_user: str = Depends(get_current_user)):
+    try:
+        # Fetch the financing option by ID
+        selected_option = await financing_options_collection.find_one({"_id": ObjectId(selection.option_id)})
+        if not selected_option:
+            logger.error(f"Financing option with ID {selection.option_id} not found.")
+            raise HTTPException(status_code=404, detail="Financing option not found")
+        
+        # Check if the user already has a selected option saved
+        existing_selection = await db['user_financing_selections'].find_one({"user": current_user})
+        
+        if existing_selection:
+            # If the user already has a selection, update it
+            logger.info(f"Updating financing option for user {current_user}")
+            await db['user_financing_selections'].update_one(
+                {"user": current_user}, 
+                {"$set": {"selected_option": selected_option, "updated_at": datetime.utcnow()}}
+            )
+        else:
+            # Otherwise, insert a new selection record
+            logger.info(f"Saving new financing option selection for user {current_user}")
+            await db['user_financing_selections'].insert_one({
+                "user": current_user,
+                "selected_option": selected_option,
+                "selected_at": datetime.utcnow()
+            })
+        
+        logger.info(f"Financing option {selection.option_id} saved for user {current_user}")
+        
+        
+        publish_message("financing_option_selected", f"User {current_user} selected financing option {selected_option['option_name']}", create_access_token({"sub": current_user}))
+
+        return {"message": f"Financing option {selected_option['option_name']} selected successfully", "selected_option": selected_option}
+    
+    except Exception as e:
+        logger.error(f"Failed to save financing option selection for user {current_user}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to save financing option selection")
