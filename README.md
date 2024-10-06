@@ -21,7 +21,9 @@ Feel free to clone the repository, explore the code, and contribute to the proje
 
 The application leverages a microservices architecture to promote scalability, maintainability, and independent deployment of services. The services communicate asynchronously using **RabbitMQ** as a message broker and store data in **MongoDB** databases.
 
-![Architecture Diagram](architecture_diagram.png) <!-- You can create an architecture diagram to include here -->
+
+![arch-diagram](https://github.com/user-attachments/assets/ea37b6fb-94d8-4e3e-a29a-722d3ac89671)
+
 
 ## Services
 
