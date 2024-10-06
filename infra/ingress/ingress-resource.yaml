@@ -78,14 +78,14 @@ spec:
                 name: finance-service
                 port:
                   number: 8002
-          - path: /admin/applications
+          - path: /applications
             pathType: Prefix
             backend:
               service:
                 name: finance-service
                 port:
                   number: 8002
-          - path: /admin/update_status
+          - path: /update_status
             pathType: Prefix
             backend:
               service:
