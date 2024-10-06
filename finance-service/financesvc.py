@@ -268,7 +268,7 @@ class PaginatedResponse(BaseModel):
 
 
 # Endpoint to get applications for all users (Admin Panel) with pagination
-@app.get("/applications", response_model=PaginatedResponse)
+@app.get("/admin/applications", response_model=PaginatedResponse)
 async def get_all_applications(
     page: int = Query(1, ge=1),
     per_page: int = Query(10, ge=1, le=100),
@@ -307,7 +307,7 @@ async def get_all_applications(
 
 
 # Endpoint to update application status by admin
-@app.put("/update_status/{application_id}/{status}")
+@app.put("/admin/update_status/{application_id}/{status}")
 async def admin_update_application_status(
     application_id: str, status: str, current_user: str = Depends(get_current_user)
 ):
