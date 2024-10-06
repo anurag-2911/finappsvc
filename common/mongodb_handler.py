@@ -5,6 +5,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 # Set up logging
 logger = logging.getLogger(__name__)
 
+
 def get_mongodb_client():
     # Read MongoDB URI from environment variables
     MONGODB_URI = os.getenv("MONGODB_URI")

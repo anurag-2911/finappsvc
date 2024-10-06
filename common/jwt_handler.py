@@ -7,15 +7,18 @@ from jose import JWTError
 import logging
 
 # Set up logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
-JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY") 
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 print(f"from common jwt handler {JWT_SECRET_KEY}")
 JWT_ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 3000
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
 
 # Helper function to create JWT token
 def create_access_token(data: dict, expires_delta: timedelta = None):
@@ -32,6 +35,7 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     except Exception as e:
         logger.error(f"Error creating JWT token: {e}")
         raise HTTPException(status_code=500, detail="Failed to create token")
+
 
 # Verify JWT token
 async def get_current_user(token: str = Depends(oauth2_scheme)):
