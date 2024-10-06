@@ -54,6 +54,16 @@ def serialize_document(document):
     return document
 
 
+# Helper function to check if the current user is admin
+async def verify_admin(current_user: str):
+    user = await users_collection.find_one({"username": current_user})
+    if not user or user.get("role") != "admin":
+        logger.warning(
+            f"Unauthorized attempt by {current_user}. Admin privileges required."
+        )
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+
 # Endpoints
 @app.post("/apply")
 async def apply_finance(
@@ -258,7 +268,7 @@ class PaginatedResponse(BaseModel):
 
 
 # Endpoint to get applications for all users (Admin Panel) with pagination
-@app.get("/admin/applications", response_model=PaginatedResponse)
+@app.get("/applications", response_model=PaginatedResponse)
 async def get_all_applications(
     page: int = Query(1, ge=1),
     per_page: int = Query(10, ge=1, le=100),
@@ -269,8 +279,8 @@ async def get_all_applications(
     Supports pagination.
     """
     try:
-        if current_user != "admin":  # Check if the current user is an admin
-            raise HTTPException(status_code=403, detail="Admin privileges required")
+        # Check if the current user is an admin
+        await verify_admin(current_user)
 
         total_items = await applications_collection.count_documents({})
         total_pages = ceil(total_items / per_page)
@@ -297,7 +307,7 @@ async def get_all_applications(
 
 
 # Endpoint to update application status by admin
-@app.put("/admin/update_status/{application_id}/{status}")
+@app.put("/update_status/{application_id}/{status}")
 async def admin_update_application_status(
     application_id: str, status: str, current_user: str = Depends(get_current_user)
 ):
@@ -305,8 +315,8 @@ async def admin_update_application_status(
     Allows admin to update the status of a finance application.
     """
     try:
-        if current_user != "admin":  # Check if the current user is an admin
-            raise HTTPException(status_code=403, detail="Admin privileges required")
+        # Check if the current user is an admin
+        await verify_admin(current_user)
 
         if status not in ["approved", "denied"]:
             raise HTTPException(status_code=400, detail="Invalid status")
