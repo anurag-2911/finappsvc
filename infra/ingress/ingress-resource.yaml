@@ -2,8 +2,15 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: finapp-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"  # Use the ClusterIssuer
+    nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - appsxyzabc.com
+      secretName: appsxyzabc-tls  
   rules:
     - host: appsxyzabc.com
       http:
@@ -85,7 +92,6 @@ spec:
                 name: finance-service
                 port:
                   number: 8002
-          # Add root path to serve the React app
           - path: /
             pathType: Prefix
             backend:
