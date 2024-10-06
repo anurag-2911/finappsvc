@@ -8,6 +8,7 @@ from time import sleep
 RABBITMQ_URI = os.getenv("RABBITMQ_URI")
 logger = logging.getLogger(__name__)
 
+
 def start_consuming(queues, callback):
     def run_async_loop(loop):
         asyncio.set_event_loop(loop)

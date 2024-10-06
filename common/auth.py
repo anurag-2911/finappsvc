@@ -4,6 +4,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 def authenticate_message(token):
     try:
         logger.info("Authenticating JWT token from message...")
