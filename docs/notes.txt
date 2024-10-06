@@ -23,4 +23,10 @@ python -m py_compile .\main.py
 pip install -r requirements.txt
 
 For formatting
-black .\analytics-service\  
+black .\analytics_service\  
+
+
+unit testing
+$env:PYTHONPATH = "C:\work\fulfin\finappsvc"
+
+PS C:\work\fulfin> python -m unittest discover -s .\finappsvc\tests\

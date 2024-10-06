@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [auth-service, finance-service, notification-service, analytics-service]  
+        service: [auth_service, finance_service, notification_service, analytics_service]  
 
     services:
       docker:
@@ -35,10 +35,10 @@ jobs:
       # Copy common folder into each service
       - name: Copy common folder into each service
         run: |
-          cp -r ./common ./auth-service/common
-          cp -r ./common ./finance-service/common
-          cp -r ./common ./notification-service/common
-          cp -r ./common ./analytics-service/common  # Added analytics-service
+          cp -r ./common ./auth_service/common
+          cp -r ./common ./finance_service/common
+          cp -r ./common ./notification_service/common
+          cp -r ./common ./analytics_service/common  
 
       - name: Build and push ${{ matrix.service }} Docker image
         run: |

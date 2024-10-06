@@ -13,7 +13,7 @@ def get_mongodb_client():
     # Ensure that MONGODB_URI is present
     if not MONGODB_URI:
         raise ValueError("MONGODB_URI not set in environment variables or is empty!")
-    
+
     # Initialize MongoDB connection
     try:
         client = AsyncIOMotorClient(MONGODB_URI)

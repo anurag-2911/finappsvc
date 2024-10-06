@@ -12,7 +12,7 @@ def connect_to_mongodb():
         db = client["root"]
         analytics_collection = db["user_analytics"]
         logger.info("Successfully connected to MongoDB for analytics.")
-        return analytics_collection
+        return client, analytics_collection  # Return both the client and the collection
     except Exception as e:
         logger.error(f"Failed to connect to MongoDB: {e}")
         raise
