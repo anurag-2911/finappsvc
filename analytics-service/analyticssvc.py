@@ -63,17 +63,13 @@ async def get_analytics(current_user: str = Depends(get_current_user)):
 
         # Count logins and financing option checks per user
         for event in logins:
-            username = event["event"].split(" ")[
-                1
-            ]  # Extract username from the event message
+            username = event["username"]
             analytics_summary["logins_per_user"][username] = (
                 analytics_summary["logins_per_user"].get(username, 0) + 1
             )
 
         for event in finance_checks:
-            username = event["event"].split(" ")[
-                1
-            ]  # Extract username from the event message
+            username = event["username"]
             analytics_summary["financing_checks_per_user"][username] = (
                 analytics_summary["financing_checks_per_user"].get(username, 0) + 1
             )

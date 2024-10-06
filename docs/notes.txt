@@ -21,3 +21,6 @@ command to compile:
 python -m py_compile .\main.py  
 
 pip install -r requirements.txt
+
+For formatting
+black .\analytics-service\  
