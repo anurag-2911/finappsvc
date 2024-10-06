@@ -4,7 +4,7 @@ metadata:
   name: finapp-ingress
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"  # Use the ClusterIssuer
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    
 spec:
   ingressClassName: nginx
   tls:
