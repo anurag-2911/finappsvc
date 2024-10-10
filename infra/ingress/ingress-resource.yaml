@@ -106,70 +106,70 @@ spec:
             pathType: Exact
             backend:
               service:
-                name: auth-service
+                name: authbeta-service
                 port:
                   number: 8001
           - path: /signup
             pathType: Exact
             backend:
               service:
-                name: auth-service
+                name: authbeta-service
                 port:
                   number: 8001
           - path: /analytics
             pathType: Exact
             backend:
               service:
-                name: analytics-service
+                name: analyticsbeta-service
                 port:
                   number: 8004
           - path: /apply
             pathType: Exact
             backend:
               service:
-                name: finance-service 
+                name: financebeta-service 
                 port:
                   number: 8002  
           - path: /apply-finance  
             pathType: Exact
             backend:
               service:
-                name: finance-service
+                name: financebeta-service
                 port:
                   number: 8002
           - path: /status
             pathType: Prefix
             backend:
               service:
-                name: finance-service
+                name: financebeta-service
                 port:
                   number: 8002
           - path: /admin/update_status
             pathType: Prefix
             backend:
               service:
-                name: finance-service
+                name: financebeta-service
                 port:
                   number: 8002
           - path: /dashboard-info
             pathType: Exact
             backend:
               service:
-                name: finance-service
+                name: financebeta-service
                 port:
                   number: 8002
-          - path: /financing-options
+          - path: /financingbeta-options
             pathType: Exact
             backend:
               service:
-                name: finance-service
+                name: financebeta-service
                 port:
                   number: 8002
           - path: /admin/applications
             pathType: Exact
             backend:
               service:
-                name: finance-service
+                name: financebeta-service
                 port:
                   number: 8002
           - path: /

@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notificationbeta-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notificationbeta-service
+  template:
+    metadata:
+      labels:
+        app: notificationbeta-service
+    spec:
+      containers:
+      - name: notificationbeta-service
+        image: anurag2911/notificationbeta-service:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: MONGODB_URI
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: MONGODB_URI
+        - name: RABBITMQ_URI
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: RABBITMQ_URI
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: JWT_SECRET_KEY  
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notificationbeta-service
+spec:
+  selector:
+    app: notificationbeta-service
+  ports:
+  - protocol: TCP
+    port: 8003
+    targetPort: 8000
+  type: ClusterIP

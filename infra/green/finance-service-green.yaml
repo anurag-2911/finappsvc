@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: financebeta-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: financebeta-service
+  template:
+    metadata:
+      labels:
+        app: financebeta-service
+    spec:
+      containers:
+      - name: financebeta-service
+        image: anurag2911/financebeta-service:latest
+        ports:
+        - containerPort: 8000  
+        env:
+        - name: MONGODB_URI
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: MONGODB_URI
+        - name: RABBITMQ_URI
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: RABBITMQ_URI
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: JWT_SECRET_KEY  
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: financebeta-service
+spec:
+  selector:
+    app: financebeta-service
+  ports:
+  - protocol: TCP
+    port: 8002
+    targetPort: 8000  
+  type: ClusterIP

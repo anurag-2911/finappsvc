@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: authbeta-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: authbeta-service
+  template:
+    metadata:
+      labels:
+        app: authbeta-service
+    spec:
+      containers:
+      - name: authbeta-service
+        image: anurag2911/authbeta-service:latest
+        ports:
+        - containerPort: 8000  
+        env:
+        - name: MONGODB_URI
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: MONGODB_URI
+        - name: RABBITMQ_URI
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: RABBITMQ_URI
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: JWT_SECRET_KEY  
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: authbeta-service
+spec:
+  selector:
+    app: authbeta-service
+  ports:
+  - protocol: TCP
+    port: 8001
+    targetPort: 8000  
+  type: ClusterIP
