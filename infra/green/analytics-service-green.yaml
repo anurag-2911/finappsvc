@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: analyticsbeta-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: analyticsbeta-service
+  template:
+    metadata:
+      labels:
+        app: analyticsbeta-service
+    spec:
+      containers:
+      - name: analyticsbeta-service
+        image: anurag2911/analyticsbeta-service:latest  
+        ports:
+        - containerPort: 8000  # analyticsbeta service port
+        env:
+        - name: MONGODB_URI
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: MONGODB_URI  
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: JWT_SECRET_KEY  
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: analyticsbeta-service
+spec:
+  selector:
+    app: analyticsbeta-service
+  ports:
+  - protocol: TCP
+    port: 8004  # Expose the analyticsbeta service on port 8004
+    targetPort: 8000  # Map to the container's port
+  type: ClusterIP
