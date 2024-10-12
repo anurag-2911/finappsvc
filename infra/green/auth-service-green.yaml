@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: authbeta-service
+  name: authgreen-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: authbeta-service
+      app: authgreen-service
   template:
     metadata:
       labels:
-        app: authbeta-service
+        app: authgreen-service
     spec:
       containers:
-      - name: authbeta-service
-        image: anurag2911/authbeta-service:latest
+      - name: authgreen-service
+        image: anurag2911/authgreen-service:latest
         ports:
         - containerPort: 8000  
         env:
@@ -37,10 +37,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: authbeta-service
+  name: authgreen-service
 spec:
   selector:
-    app: authbeta-service
+    app: authgreen-service
   ports:
   - protocol: TCP
     port: 8001

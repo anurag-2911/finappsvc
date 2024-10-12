@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: analyticsbeta-service
+  name: analyticsgreen-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: analyticsbeta-service
+      app: analyticsgreen-service
   template:
     metadata:
       labels:
-        app: analyticsbeta-service
+        app: analyticsgreen-service
     spec:
       containers:
-      - name: analyticsbeta-service
-        image: anurag2911/analyticsbeta-service:latest  
+      - name: analyticsgreen-service
+        image: anurag2911/analyticsgreen-service:latest  
         ports:
-        - containerPort: 8000  # analyticsbeta service port
+        - containerPort: 8000  # analyticsgreen service port
         env:
         - name: MONGODB_URI
           valueFrom:
@@ -32,12 +32,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: analyticsbeta-service
+  name: analyticsgreen-service
 spec:
   selector:
-    app: analyticsbeta-service
+    app: analyticsgreen-service
   ports:
   - protocol: TCP
-    port: 8004  # Expose the analyticsbeta service on port 8004
+    port: 8004  # Expose the analyticsgreen service on port 8004
     targetPort: 8000  # Map to the container's port
   type: ClusterIP

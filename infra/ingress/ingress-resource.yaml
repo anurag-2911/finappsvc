@@ -12,8 +12,8 @@ spec:
         - appsxyzabc.com
       secretName: appsxyzabc-tls
     - hosts:
-        - beta.appsxyzabc.com  
-      secretName: beta-appsxyzabc-tls  
+        - green.appsxyzabc.com  
+      secretName: green-appsxyzabc-tls  
   
   rules:
     # Rule for production domain
@@ -98,84 +98,84 @@ spec:
                 port:
                   number: 80
 
-    # Rule for beta subdomain
-    - host: beta.appsxyzabc.com
+    # Rule for green subdomain
+    - host: green.appsxyzabc.com
       http:
         paths:
           - path: /login
             pathType: Exact
             backend:
               service:
-                name: authbeta-service
+                name: authgreen-service
                 port:
                   number: 8001
           - path: /signup
             pathType: Exact
             backend:
               service:
-                name: authbeta-service
+                name: authgreen-service
                 port:
                   number: 8001
           - path: /analytics
             pathType: Exact
             backend:
               service:
-                name: analyticsbeta-service
+                name: analyticsgreen-service
                 port:
                   number: 8004
           - path: /apply
             pathType: Exact
             backend:
               service:
-                name: financebeta-service 
+                name: financegreen-service 
                 port:
                   number: 8002  
           - path: /apply-finance  
             pathType: Exact
             backend:
               service:
-                name: financebeta-service
+                name: financegreen-service
                 port:
                   number: 8002
           - path: /status
             pathType: Prefix
             backend:
               service:
-                name: financebeta-service
+                name: financegreen-service
                 port:
                   number: 8002
           - path: /admin/update_status
             pathType: Prefix
             backend:
               service:
-                name: financebeta-service
+                name: financegreen-service
                 port:
                   number: 8002
           - path: /dashboard-info
             pathType: Exact
             backend:
               service:
-                name: financebeta-service
+                name: financegreen-service
                 port:
                   number: 8002
-          - path: /financingbeta-options
+          - path: /financinggreen-options
             pathType: Exact
             backend:
               service:
-                name: financebeta-service
+                name: financegreen-service
                 port:
                   number: 8002
           - path: /admin/applications
             pathType: Exact
             backend:
               service:
-                name: financebeta-service
+                name: financegreen-service
                 port:
                   number: 8002
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: finappbeta-service
+                name: finappgreen-service
                 port:
                   number: 80
