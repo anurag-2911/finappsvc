@@ -1,4 +1,3 @@
-# .github/workflows/build-microservices-green.yml
 name: Build and Push Green Microservices
 
 on:
@@ -9,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [auth-service, finance-service, notification-service, analytics-service]  
+        service: [auth-service, finance-service, notification-service, analytics-service]  # Keep this naming convention for the services based on folder names
 
     steps:
       - name: Checkout repository
@@ -32,8 +31,16 @@ jobs:
           cp -r ./common ./notification-service/common
           cp -r ./common ./analytics-service/common
 
+      # Build and push Docker image with green naming convention
       - name: Build and push ${{ matrix.service }} Green Docker image
         run: |
-          docker build -t anurag2911/${{ matrix.service }}green:latest -t anurag2911/${{ matrix.service }}green:${{ github.sha }} ./${{ matrix.service }}
-          docker push anurag2911/${{ matrix.service }}green:latest
-          docker push anurag2911/${{ matrix.service }}green:${{ github.sha }}
+          # Extract the base service name by removing '-service'
+          service_name=$(echo "${{ matrix.service }}" | sed 's/-service//')
+          
+          # Construct the new image name by appending 'green' and adding '-service' again
+          green_image_name="${service_name}green-service"
+          
+          # Build and push Docker image using the new naming convention
+          docker build -t anurag2911/$green_image_name:latest -t anurag2911/$green_image_name:${{ github.sha }} ./${{ matrix.service }}
+          docker push anurag2911/$green_image_name:latest
+          docker push anurag2911/$green_image_name:${{ github.sha }}
