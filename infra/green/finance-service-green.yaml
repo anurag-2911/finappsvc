@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: financebeta-service
+  name: financegreen-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: financebeta-service
+      app: financegreen-service
   template:
     metadata:
       labels:
-        app: financebeta-service
+        app: financegreen-service
     spec:
       containers:
-      - name: financebeta-service
-        image: anurag2911/financebeta-service:latest
+      - name: financegreen-service
+        image: anurag2911/financegreen-service:latest
         ports:
         - containerPort: 8000  
         env:
@@ -37,10 +37,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: financebeta-service
+  name: financegreen-service
 spec:
   selector:
-    app: financebeta-service
+    app: financegreen-service
   ports:
   - protocol: TCP
     port: 8002

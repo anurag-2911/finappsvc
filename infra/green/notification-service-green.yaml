@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: notificationbeta-service
+  name: notificationgreen-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: notificationbeta-service
+      app: notificationgreen-service
   template:
     metadata:
       labels:
-        app: notificationbeta-service
+        app: notificationgreen-service
     spec:
       containers:
-      - name: notificationbeta-service
-        image: anurag2911/notificationbeta-service:latest
+      - name: notificationgreen-service
+        image: anurag2911/notificationgreen-service:latest
         ports:
         - containerPort: 8000
         env:
@@ -37,10 +37,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: notificationbeta-service
+  name: notificationgreen-service
 spec:
   selector:
-    app: notificationbeta-service
+    app: notificationgreen-service
   ports:
   - protocol: TCP
     port: 8003
