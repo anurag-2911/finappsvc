@@ -333,3 +333,30 @@ async def admin_update_application_status(
     except Exception as e:
         logger.error(f"Failed to update status for application {application_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to update status")
+
+
+@app.post("/log-financing-options-visit")
+async def log_financing_options_visit(current_user: str = Depends(get_current_user)):
+    try:
+        logger.info(f"User {current_user} visited financing options.")
+
+        # Log the event to MongoDB for tracking
+        visit_event = {
+            "username": current_user,
+            "event": "checked financing options",
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+
+        logger.info(f"User {visit_event} raised financing options visit event.")
+        # Raise an event for RabbitMQ
+        publish_message(
+            "user_activity",
+            f"User {current_user} visited financing options at {datetime.utcnow().isoformat()}",
+        )
+
+        return {"message": "Visit logged successfully"}
+    except Exception as e:
+        logger.error(
+            f"Failed to log financing options visit for user {current_user}: {e}"
+        )
+        raise HTTPException(status_code=500, detail="Failed to log visit")

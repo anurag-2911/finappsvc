@@ -45,7 +45,7 @@ financing_options_data = [
         "interest_rate": 5.0,
         "duration_months": 36,
         "max_amount": 30000,
-        "description": "Personal loans for all your needs with flexible repayment options.",
+        "description": "Personal loans for all your needs with flexible options.",
         "eligibility_criteria": {"min_income": 25000, "credit_score": 620},
     },
     {

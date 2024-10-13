@@ -90,6 +90,13 @@ spec:
                 name: finance-service
                 port:
                   number: 8002
+          - path: /log-financing-options-visit   
+            pathType: Exact
+            backend:
+              service:
+                name: finance-service
+                port:
+                  number: 8002
           - path: /
             pathType: Prefix
             backend:
@@ -173,6 +180,13 @@ spec:
                 port:
                   number: 8002
           - path: /admin/applications
+            pathType: Exact
+            backend:
+              service:
+                name: financegreen-service
+                port:
+                  number: 8002
+          - path: /log-financing-options-visit
             pathType: Exact
             backend:
               service:
