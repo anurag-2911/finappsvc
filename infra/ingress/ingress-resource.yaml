@@ -129,6 +129,13 @@ spec:
               service:
                 name: financegreen-service 
                 port:
+                  number: 8002
+          - path: /financing-options
+            pathType: Exact
+            backend:
+              service:
+                name: finance-service
+                port:
                   number: 8002  
           - path: /apply-finance  
             pathType: Exact
