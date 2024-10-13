@@ -352,6 +352,7 @@ async def log_financing_options_visit(current_user: str = Depends(get_current_us
         publish_message(
             "user_activity",
             f"User {current_user} visited financing options at {datetime.utcnow().isoformat()}",
+            create_access_token({"sub": current_user}),
         )
 
         return {"message": "Visit logged successfully"}
