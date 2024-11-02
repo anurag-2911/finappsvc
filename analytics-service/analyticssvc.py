@@ -21,7 +21,7 @@ try:
     logger.info("Successfully connected to MongoDB for analytics.")
 except Exception as e:
     logger.error(f"Failed to connect to MongoDB: {e}")
-    raise HTTPException(status_code=500, detail="Failed to connect to MongoDB")
+    raise HTTPException(status_code=500, detail="Failed to connect to MongoDB") 
 
 
 # Admin-only: View analytics data
