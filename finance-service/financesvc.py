@@ -16,6 +16,7 @@ from math import ceil
 # Initialize FastAPI app
 app = FastAPI()
 
+
 # OAuth2 scheme
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
