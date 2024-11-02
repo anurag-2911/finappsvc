@@ -702,7 +702,7 @@ curl -X GET https://appsxyzabc.com/analytics \
   -H "Authorization: Bearer admin_jwt_token_here"
 ```
 
-## Conclusion
+## Summary
 
 FinApp demonstrates a robust microservices architecture suitable for scalable financial applications. By leveraging RabbitMQ and MongoDB, the system ensures efficient communication and reliable data storage. Deployment is streamlined using Docker and Kubernetes, providing scalability and resilience. Continuous Integration and Deployment are automated using GitHub Actions, ensuring consistent and efficient delivery of updates.
 
